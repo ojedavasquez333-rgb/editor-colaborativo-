@@ -7,12 +7,27 @@
 body, html {
     width: 100vw;
     height: 100vh;
+    height: 100dvh; /* Altura dinámica para móviles modernos (evita que la barra de navegación tape) */
+    max-height: 100dvh;
     background-color: #0a0a0a;
     color: #e9edef;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Scrollbar dark theme para desktop y móviles que lo muestren */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-thumb {
+    background: #333333;
+    border-radius: 3px;
+}
+::-webkit-scrollbar-track {
+    background: #0a0a0a;
 }
 
 /* Barra superior monocromática */
@@ -26,43 +41,47 @@ body, html {
     min-height: 60px;
     border-bottom: 1px solid #222222;
     z-index: 10;
+    flex-shrink: 0; /* Asegura que el header no se aplaste en móviles */
+    overflow: visible; 
 }
 
 #users-list {
     display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
+    gap: 8px;
+    flex-wrap: wrap; /* Permite que las pastillas salten a la siguiente línea si no caben */
+    flex: 1;
 }
 
 .user-badge {
-    padding: 6px 12px;
+    padding: 6px 10px;
     border-radius: 20px;
     font-size: 13px;
     font-weight: 500;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     background-color: #1a1a1a;
     border: 1px solid #333333;
 }
 
 .user-dot {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
+    flex-shrink: 0;
 }
 
 .header-right {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 12px;
+    flex-shrink: 0; /* Evita que el área de admin se colapse */
 }
 
 #typing-indicator {
-    font-size: 13px;
+    font-size: 12px;
     font-style: italic;
     color: #888888;
-    min-width: 150px;
     text-align: right;
 }
 
@@ -72,6 +91,7 @@ body, html {
     transition: color 0.2s;
     display: flex;
     align-items: center;
+    padding: 4px;
 }
 
 #admin-icon:hover {
@@ -80,9 +100,10 @@ body, html {
 
 /* Área de Chat (Historial) */
 #chat-container {
-    flex-grow: 1;
+    flex: 1;
     overflow-y: auto;
-    padding: 20px 5%;
+    -webkit-overflow-scrolling: touch; /* Habilita el scroll cinético en iOS */
+    padding: 12px;
     display: flex;
     flex-direction: column;
     background-color: #0a0a0a;
@@ -107,14 +128,14 @@ body, html {
 
 .message-own {
     align-self: flex-end;
-    background-color: #222222; /* Gris carbón en vez de verde */
+    background-color: #222222;
     border-top-right-radius: 2px;
     border-color: #333333;
 }
 
 .message-other {
     align-self: flex-start;
-    background-color: #141414; /* Casi negro */
+    background-color: #141414;
     border-top-left-radius: 2px;
 }
 
@@ -134,7 +155,7 @@ body, html {
 
 .message-time {
     font-size: 11px;
-    color: #888888; /* Hora en gris claro */
+    color: #888888;
     position: absolute;
     bottom: 4px;
     right: 10px;
@@ -144,21 +165,23 @@ body, html {
 #input-area {
     display: flex;
     padding: 12px 20px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom)); /* Soporte para la barra inferior de iPhone/Android */
     background-color: #0f0f0f;
     border-top: 1px solid #222222;
     gap: 10px;
     align-items: center;
+    flex-shrink: 0; /* Asegura que la barra nunca se oculte */
 }
 
 #message-input {
     flex-grow: 1;
-    padding: 12px 20px;
+    padding: 12px 16px;
     border-radius: 24px;
     border: 1px solid #333333;
     outline: none;
     background-color: #1a1a1a;
     color: #ffffff;
-    font-size: 15px;
+    font-size: 16px; /* 16px evita que Safari móvil haga zoom automático al escribir */
 }
 
 #message-input::placeholder {
@@ -166,7 +189,7 @@ body, html {
 }
 
 #send-button {
-    padding: 12px 24px;
+    padding: 12px 20px;
     border: 1px solid #333333;
     border-radius: 24px;
     background-color: #1a1a1a;
@@ -175,6 +198,7 @@ body, html {
     font-size: 15px;
     cursor: pointer;
     transition: background-color 0.2s;
+    flex-shrink: 0;
 }
 
 #send-button:hover {
@@ -205,6 +229,7 @@ body, html {
     border-radius: 12px;
     border: 1px solid #333333;
     width: 350px;
+    max-width: 90%; /* Para que el modal se vea bien en pantallas angostas */
     display: flex;
     flex-direction: column;
     gap: 15px;
@@ -224,7 +249,7 @@ body, html {
     border: 1px solid #333333;
     background-color: #1a1a1a;
     color: #ffffff;
-    font-size: 16px;
+    font-size: 16px; /* Evitar zoom en modal Safari */
     text-align: center;
     outline: none;
 }
@@ -265,4 +290,32 @@ body, html {
 
 .danger-btn:hover {
     background-color: #b3261e;
+}
+
+/* ---------------------------------
+   MEDIA QUERIES PARA MÓVILES
+   --------------------------------- */
+@media (max-width: 768px) {
+    #input-area {
+        padding: 10px 12px;
+        padding-bottom: calc(16px + env(safe-area-inset-bottom));
+        gap: 8px;
+    }
+    
+    #top-bar {
+        padding: 10px 12px;
+        min-height: 50px;
+    }
+    
+    #chat-container {
+        padding: 12px 10px;
+    }
+    
+    .message {
+        max-width: 85%; /* Las burbujas pueden ocupar más ancho en móvil */
+    }
+    
+    #send-button {
+        padding: 12px 16px; /* Botón ligeramente más compacto */
+    }
 }
