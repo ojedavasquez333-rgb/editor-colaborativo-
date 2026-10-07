@@ -1,6 +1,5 @@
 const socket = io();
 
-// Función para obtener el ID de la sala desde la URL o usar una sala global por defecto
 const getRoomId = () => {
     const urlParams = new URLSearchParams(window.location.search);
     let roomId = urlParams.get('room');
@@ -12,65 +11,105 @@ const getRoomId = () => {
 };
 
 const roomId = getRoomId();
-const editor = document.getElementById('editor');
+const messagesListEl = document.getElementById('messages-list');
+const chatContainerEl = document.getElementById('chat-container');
+const messageInput = document.getElementById('message-input');
+const sendButton = document.getElementById('send-button');
 const usersListEl = document.getElementById('users-list');
 const typingIndicatorEl = document.getElementById('typing-indicator');
 
 let myInfo = null;
 
-// Recibir nuestra propia información al conectar
+// Cuando recibimos nuestra info, nos unimos a la sala
 socket.on('my-info', (info) => {
     myInfo = info;
+    socket.emit('join-room', roomId);
 });
 
-// Unirse a la sala
-socket.emit('join-room', roomId);
+// ------------- ENVIAR MENSAJES -------------
+const sendMessage = () => {
+    const text = messageInput.value.trim();
+    if (text) {
+        socket.emit('chat-message', { roomId, content: text });
+        messageInput.value = ''; // Limpiar el campo
+    }
+};
 
+sendButton.addEventListener('click', sendMessage);
+messageInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+});
+
+// Emitir evento de 'está escribiendo'
 let typingTimeout;
-
-// Escuchar lo que escribe el usuario local
-editor.addEventListener('input', () => {
-    const content = editor.value;
-    socket.emit('text-change', { roomId, content });
-    
-    // Emitir evento indicando que estamos escribiendo
+messageInput.addEventListener('input', () => {
     socket.emit('typing', { roomId });
 });
 
-// Sincronizar cambios de texto
-socket.on('text-update', (content) => {
-    if (editor.value === content) return;
 
-    const cursorStart = editor.selectionStart;
-    const cursorEnd = editor.selectionEnd;
+// ------------- RENDERIZAR MENSAJES -------------
+const renderMessage = (msg) => {
+    const isMe = myInfo && myInfo.id === msg.senderId;
     
-    editor.value = content;
+    // Crear contenedor del mensaje (burbuja)
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isMe ? 'message-own' : 'message-other'}`;
     
-    if (document.activeElement === editor) {
-        editor.setSelectionRange(cursorStart, cursorEnd);
-    }
+    // Nombre del remitente
+    const nameSpan = document.createElement('div');
+    nameSpan.className = 'message-name';
+    // Letra verde (WP) si somos nosotros, sino el color asignado
+    nameSpan.style.color = isMe ? '#00a884' : msg.senderColor;
+    nameSpan.innerText = isMe ? `Tú (${msg.senderName})` : msg.senderName;
+    
+    // Texto del mensaje
+    const textSpan = document.createElement('div');
+    textSpan.className = 'message-text';
+    textSpan.innerText = msg.text;
+    
+    // Hora
+    const timeSpan = document.createElement('div');
+    timeSpan.className = 'message-time';
+    timeSpan.innerText = msg.timestamp;
+    
+    messageDiv.appendChild(nameSpan);
+    messageDiv.appendChild(textSpan);
+    messageDiv.appendChild(timeSpan);
+    
+    messagesListEl.appendChild(messageDiv);
+    
+    // Hacer auto-scroll hacia abajo inmediatamente
+    chatContainerEl.scrollTop = chatContainerEl.scrollHeight;
+};
+
+// Recibir todo el historial cuando entramos a la sala
+socket.on('chat-history', (history) => {
+    messagesListEl.innerHTML = '';
+    history.forEach(renderMessage);
 });
 
-// Actualizar la barra superior con la lista de usuarios en la sala
+// Recibir un nuevo mensaje en vivo
+socket.on('new-message', (msg) => {
+    renderMessage(msg);
+});
+
+
+// ------------- USUARIOS Y EVENTOS -------------
 socket.on('room-users', (users) => {
-    usersListEl.innerHTML = ''; // Limpiar lista
-    
+    usersListEl.innerHTML = ''; 
     users.forEach(user => {
         const isMe = myInfo && myInfo.id === user.id;
         
-        // Crear el "badge" o píldora del usuario
         const badge = document.createElement('div');
         badge.className = 'user-badge';
         
-        // Crear el punto de color
         const dot = document.createElement('div');
         dot.className = 'user-dot';
         dot.style.backgroundColor = user.color;
         
-        // Nombre del usuario y (Tú) si corresponde
         const text = document.createElement('span');
         text.innerText = user.name + (isMe ? ' (Tú)' : '');
-        text.style.color = user.color; // Letra con su color distintivo
+        text.style.color = user.color;
         
         badge.appendChild(dot);
         badge.appendChild(text);
@@ -78,12 +117,10 @@ socket.on('room-users', (users) => {
     });
 });
 
-// Mostrar el aviso visual cuando alguien más escribe
 socket.on('user-typing', (data) => {
     typingIndicatorEl.innerText = `${data.name} está escribiendo...`;
     typingIndicatorEl.style.color = data.color;
     
-    // Limpiar el aviso después de 1.5 segundos de inactividad
     clearTimeout(typingTimeout);
     typingTimeout = setTimeout(() => {
         typingIndicatorEl.innerText = '';

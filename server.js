@@ -13,7 +13,8 @@ const io = new Server(server, {
 
 app.use(express.static('public'));
 
-const documents = {};
+// Historial persistente en memoria: guarda un arreglo de mensajes por cada sala
+const messages = {}; // roomId -> Array de objetos mensaje
 let anonymousCounter = 1;
 const users = {}; // socket.id -> { name, color, roomId }
 
@@ -28,7 +29,7 @@ io.on('connection', (socket) => {
     
     users[socket.id] = { name, color, roomId: null };
     
-    // Enviar al propio cliente su información para que sepa quién es
+    // Enviar al propio cliente su información
     socket.emit('my-info', { id: socket.id, name, color });
 
     socket.on('join-room', (roomId) => {
@@ -36,18 +37,35 @@ io.on('connection', (socket) => {
         users[socket.id].roomId = roomId;
         console.log(`${name} se unió a la sala: ${roomId}`);
         
-        if (documents[roomId] === undefined) {
-            documents[roomId] = "";
+        // Inicializar el arreglo de historial si la sala es nueva
+        if (messages[roomId] === undefined) {
+            messages[roomId] = [];
         }
-        socket.emit('text-update', documents[roomId]);
         
-        // Actualizar la lista de usuarios para todos en la sala
+        // Enviar todo el historial de la sala al usuario que acaba de entrar
+        socket.emit('chat-history', messages[roomId]);
+        
+        // Actualizar la lista de usuarios
         emitRoomUsers(roomId);
     });
 
-    socket.on('text-change', (data) => {
-        documents[data.roomId] = data.content;
-        socket.to(data.roomId).emit('text-update', data.content);
+    // Escuchar cuando alguien envía un mensaje de chat
+    socket.on('chat-message', (data) => {
+        const user = users[socket.id];
+        const messageObj = {
+            id: Date.now().toString(),
+            text: data.content,
+            senderId: socket.id,
+            senderName: user.name,
+            senderColor: user.color,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        
+        // Guardar en el historial
+        messages[data.roomId].push(messageObj);
+        
+        // Hacer broadcast a TODOS en la sala, incluyendo al que lo envió (para que él también lo pinte)
+        io.to(data.roomId).emit('new-message', messageObj);
     });
     
     // Escuchar cuando alguien está escribiendo
@@ -62,14 +80,12 @@ io.on('connection', (socket) => {
             const roomId = user.roomId;
             delete users[socket.id];
             
-            // Avisar a la sala que la lista de usuarios cambió
             if (roomId) {
                 emitRoomUsers(roomId);
             }
         }
     });
     
-    // Función para emitir la lista de usuarios conectados en una sala específica
     function emitRoomUsers(roomId) {
         const roomUsers = Object.entries(users)
             .filter(([id, user]) => user.roomId === roomId)

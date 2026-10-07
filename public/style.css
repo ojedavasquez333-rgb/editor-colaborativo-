@@ -7,22 +7,25 @@
 body, html {
     width: 100vw;
     height: 100vh;
-    background-color: #000000;
-    overflow: hidden; /* Evita el scroll fuera del textarea */
+    background-color: #0b141a; /* Fondo estilo WhatsApp Web oscuro */
+    color: #e9edef;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* Barra superior inmersiva que combina con el fondo negro */
+/* Barra superior */
 #top-bar {
     width: 100%;
     padding: 10px 20px;
-    background-color: #000000;
-    border-bottom: 1px solid #222222;
+    background-color: #202c33;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    min-height: 50px;
+    min-height: 60px;
+    box-shadow: 0 1px 3px rgba(11, 20, 26, 0.4);
+    z-index: 10;
 }
 
 #users-list {
@@ -34,14 +37,12 @@ body, html {
 .user-badge {
     padding: 6px 12px;
     border-radius: 20px;
-    font-family: sans-serif;
     font-size: 13px;
-    font-weight: bold;
+    font-weight: 500;
     display: flex;
     align-items: center;
     gap: 8px;
-    background-color: #111111;
-    border: 1px solid #333333;
+    background-color: #2a3942;
 }
 
 .user-dot {
@@ -51,27 +52,111 @@ body, html {
 }
 
 #typing-indicator {
-    font-family: sans-serif;
     font-size: 13px;
     font-style: italic;
-    color: #AAAAAA;
+    color: #8696a0;
     min-width: 150px;
     text-align: right;
 }
 
-#editor {
-    flex-grow: 1; /* Ocupa el resto de la pantalla */
-    width: 100%;
-    background-color: #000000;
-    color: #FFFFFF;
-    border: none;
-    outline: none;
-    resize: none;
-    font-family: monospace;
-    font-size: 18px;
-    padding: 20px;
+/* Área de Chat (Historial) */
+#chat-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px 5%;
+    display: flex;
+    flex-direction: column;
+    /* Fondo que imita la trama suave de WhatsApp */
+    background-image: url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png"); 
+    background-color: #0b141a;
 }
 
-#editor::placeholder {
-    color: #555555;
+#messages-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Burbujas de mensaje */
+.message {
+    max-width: 75%;
+    padding: 6px 10px 8px 12px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 1px 0.5px rgba(11,20,26,.13);
+}
+
+.message-own {
+    align-self: flex-end;
+    background-color: #005c4b; /* Verde oscuro (mensaje propio WP) */
+    border-top-right-radius: 0;
+}
+
+.message-other {
+    align-self: flex-start;
+    background-color: #202c33; /* Gris oscuro (mensaje ajeno WP) */
+    border-top-left-radius: 0;
+}
+
+.message-name {
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 3px;
+}
+
+.message-text {
+    font-size: 14.5px;
+    line-height: 1.4;
+    margin-bottom: 12px;
+    word-wrap: break-word;
+}
+
+.message-time {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    position: absolute;
+    bottom: 4px;
+    right: 8px;
+}
+
+/* Barra Inferior (Input) */
+#input-area {
+    display: flex;
+    padding: 12px 20px;
+    background-color: #202c33;
+    gap: 10px;
+    align-items: center;
+}
+
+#message-input {
+    flex-grow: 1;
+    padding: 12px 20px;
+    border-radius: 24px;
+    border: none;
+    outline: none;
+    background-color: #2a3942;
+    color: #e9edef;
+    font-size: 15px;
+}
+
+#message-input::placeholder {
+    color: #8696a0;
+}
+
+#send-button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 24px;
+    background-color: #00a884;
+    color: #111b21;
+    font-weight: bold;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#send-button:hover {
+    background-color: #008f6f;
 }

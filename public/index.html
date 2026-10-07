@@ -3,18 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editor Colaborativo</title>
+    <title>Chat Colaborativo (WhatsApp Style)</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="top-bar">
-        <div id="users-list">
-            <!-- Los badges de usuarios se insertarán aquí dinámicamente -->
-        </div>
+        <div id="users-list"></div>
         <div id="typing-indicator"></div>
     </div>
     
-    <textarea id="editor" placeholder="Empieza a escribir... Invita a otros copiando la URL de la página."></textarea>
+    <!-- Contenedor del historial secuencial de mensajes -->
+    <div id="chat-container">
+        <div id="messages-list"></div>
+    </div>
+    
+    <!-- Barra inferior con el campo de texto y botón -->
+    <div id="input-area">
+        <input type="text" id="message-input" placeholder="Escribe un mensaje..." autocomplete="off">
+        <button id="send-button">Enviar</button>
+    </div>
     
     <script src="/socket.io/socket.io.js"></script>
     <script src="script.js"></script>
