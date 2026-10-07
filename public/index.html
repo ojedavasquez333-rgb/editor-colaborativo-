@@ -7,9 +7,15 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="top-bar">
+        <div id="users-list">
+            <!-- Los badges de usuarios se insertarán aquí dinámicamente -->
+        </div>
+        <div id="typing-indicator"></div>
+    </div>
+    
     <textarea id="editor" placeholder="Empieza a escribir... Invita a otros copiando la URL de la página."></textarea>
     
-    <!-- Cargar Socket.io -->
     <script src="/socket.io/socket.io.js"></script>
     <script src="script.js"></script>
 </body>

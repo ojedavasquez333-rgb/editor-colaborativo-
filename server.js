@@ -11,39 +11,71 @@ const io = new Server(server, {
     }
 });
 
-// Servir archivos estáticos desde la carpeta 'public'
 app.use(express.static('public'));
 
-// Estado persistente en memoria: guarda el contenido de cada sala
 const documents = {};
+let anonymousCounter = 1;
+const users = {}; // socket.id -> { name, color, roomId }
+
+// Lista de colores distintivos para los usuarios
+const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'];
 
 io.on('connection', (socket) => {
-    // Unirse a una sala específica
+    // Asignar nombre secuencial y color aleatorio o secuencial
+    const name = `Anonymous ${anonymousCounter}`;
+    const color = colors[anonymousCounter % colors.length];
+    anonymousCounter++;
+    
+    users[socket.id] = { name, color, roomId: null };
+    
+    // Enviar al propio cliente su información para que sepa quién es
+    socket.emit('my-info', { id: socket.id, name, color });
+
     socket.on('join-room', (roomId) => {
         socket.join(roomId);
-        console.log(`Usuario conectado a la sala: ${roomId}`);
+        users[socket.id].roomId = roomId;
+        console.log(`${name} se unió a la sala: ${roomId}`);
         
-        // Si la sala no existe, la inicializamos vacía
         if (documents[roomId] === undefined) {
             documents[roomId] = "";
         }
-        
-        // Enviar el contenido actual de la sala al usuario que acaba de entrar
         socket.emit('text-update', documents[roomId]);
+        
+        // Actualizar la lista de usuarios para todos en la sala
+        emitRoomUsers(roomId);
     });
 
-    // Escuchar cambios de texto y transmitirlos a la misma sala
     socket.on('text-change', (data) => {
-        // Actualizar el estado en la memoria del servidor
         documents[data.roomId] = data.content;
-        
-        // Hacer broadcast a todos los demás clientes en la sala
         socket.to(data.roomId).emit('text-update', data.content);
     });
     
-    socket.on('disconnect', () => {
-        console.log('Usuario desconectado');
+    // Escuchar cuando alguien está escribiendo
+    socket.on('typing', (data) => {
+        socket.to(data.roomId).emit('user-typing', { name: users[socket.id].name, color: users[socket.id].color });
     });
+
+    socket.on('disconnect', () => {
+        const user = users[socket.id];
+        if (user) {
+            console.log(`${user.name} se desconectó`);
+            const roomId = user.roomId;
+            delete users[socket.id];
+            
+            // Avisar a la sala que la lista de usuarios cambió
+            if (roomId) {
+                emitRoomUsers(roomId);
+            }
+        }
+    });
+    
+    // Función para emitir la lista de usuarios conectados en una sala específica
+    function emitRoomUsers(roomId) {
+        const roomUsers = Object.entries(users)
+            .filter(([id, user]) => user.roomId === roomId)
+            .map(([id, user]) => ({ id, name: user.name, color: user.color }));
+        io.to(roomId).emit('room-users', roomUsers);
+    }
 });
 
 const PORT = process.env.PORT || 3000;
