@@ -10,7 +10,18 @@
     <!-- Pantalla de carga ultrarrápida (Splash screen) -->
     <div id="splash-screen">
         <div class="splash-content">
-            <img class="splash-mask" src="https://upload.wikimedia.org/wikipedia/commons/3/3a/Guy_Fawkes_mask.svg" alt="Anonymous Mask">
+            <svg class="splash-mask" viewBox="0 0 100 100" width="130" height="130" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M50 8 C28 8 20 25 20 50 C20 72 35 90 50 96 C65 90 80 72 80 50 C80 25 72 8 50 8 Z" fill="#F4F4F4" stroke="#111" stroke-width="2"/>
+                <ellipse cx="37" cy="40" rx="7" ry="3" fill="#111"/>
+                <ellipse cx="63" cy="40" rx="7" ry="3" fill="#111"/>
+                <path d="M28 34 Q37 26 45 35" stroke="#111" stroke-width="3" stroke-linecap="round" fill="none"/>
+                <path d="M72 34 Q63 26 55 35" stroke="#111" stroke-width="3" stroke-linecap="round" fill="none"/>
+                <ellipse cx="28" cy="54" rx="5" ry="3" fill="#E88A8A" opacity="0.6"/>
+                <ellipse cx="72" cy="54" rx="5" ry="3" fill="#E88A8A" opacity="0.6"/>
+                <path d="M50 63 C44 60 30 58 22 52 C26 58 38 66 50 67 C62 66 74 58 78 52 C70 58 56 60 50 63 Z" fill="#111"/>
+                <path d="M34 68 Q50 78 66 68" stroke="#A84C5B" stroke-width="2" stroke-linecap="round" fill="none"/>
+                <path d="M48 76 L52 76 L50 88 Z" fill="#111"/>
+            </svg>
             <div class="splash-text">CONNECTING...</div>
         </div>
     </div>
@@ -19,10 +30,21 @@
         <div id="users-list"></div>
         <div class="header-right">
             <div id="typing-indicator"></div>
-            <!-- Ícono real de la máscara de Vendetta -->
-            <div id="admin-icon" title="Opciones de Administrador">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/3/3a/Guy_Fawkes_mask.svg" alt="Admin" width="32" height="32">
-            </div>
+            <!-- Botón de configuración con máscara de Vendetta inline -->
+            <button id="admin-btn" class="admin-btn" title="Configuración">
+              <svg viewBox="0 0 100 100" width="30" height="30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M50 8 C28 8 20 25 20 50 C20 72 35 90 50 96 C65 90 80 72 80 50 C80 25 72 8 50 8 Z" fill="#F4F4F4" stroke="#111" stroke-width="2"/>
+                <ellipse cx="37" cy="40" rx="7" ry="3" fill="#111"/>
+                <ellipse cx="63" cy="40" rx="7" ry="3" fill="#111"/>
+                <path d="M28 34 Q37 26 45 35" stroke="#111" stroke-width="3" stroke-linecap="round" fill="none"/>
+                <path d="M72 34 Q63 26 55 35" stroke="#111" stroke-width="3" stroke-linecap="round" fill="none"/>
+                <ellipse cx="28" cy="54" rx="5" ry="3" fill="#E88A8A" opacity="0.6"/>
+                <ellipse cx="72" cy="54" rx="5" ry="3" fill="#E88A8A" opacity="0.6"/>
+                <path d="M50 63 C44 60 30 58 22 52 C26 58 38 66 50 67 C62 66 74 58 78 52 C70 58 56 60 50 63 Z" fill="#111"/>
+                <path d="M34 68 Q50 78 66 68" stroke="#A84C5B" stroke-width="2" stroke-linecap="round" fill="none"/>
+                <path d="M48 76 L52 76 L50 88 Z" fill="#111"/>
+              </svg>
+            </button>
         </div>
     </div>
     

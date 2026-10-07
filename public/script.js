@@ -148,14 +148,14 @@ socket.on('user-typing', (data) => {
 });
 
 // ------------- ADMIN MODALS -------------
-const adminIcon = document.getElementById('admin-icon');
+const adminBtn = document.getElementById('admin-btn');
 const passwordModal = document.getElementById('password-modal');
 const configModal = document.getElementById('config-modal');
 const passInput = document.getElementById('admin-password');
 const passError = document.getElementById('password-error');
 
 // Mostrar modal de contraseña
-adminIcon.addEventListener('click', () => {
+adminBtn.addEventListener('click', () => {
     passwordModal.classList.add('active');
     passInput.focus();
 });

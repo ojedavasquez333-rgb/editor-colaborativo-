@@ -102,8 +102,6 @@ body, html {
 }
 
 .splash-mask {
-    width: 160px; /* Tamaño grande especificado */
-    height: auto;
     animation: pulseMask 1.5s infinite alternate;
 }
 
@@ -127,21 +125,18 @@ body, html {
     text-align: right;
 }
 
-#admin-icon {
+.admin-btn {
+    background: none;
+    border: none;
     cursor: pointer;
     transition: transform 0.2s;
     display: flex;
     align-items: center;
     padding: 6px; /* Padding extra para área táctil */
+    outline: none;
 }
 
-#admin-icon img {
-    width: 32px;
-    height: 32px;
-    filter: drop-shadow(0 0 2px rgba(255,255,255,0.2));
-}
-
-#admin-icon:hover {
+.admin-btn:hover {
     transform: scale(1.1);
 }
 
