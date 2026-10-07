@@ -18,16 +18,15 @@ const registeredDevices = {}; // deviceId -> { name, color }
 const activeSockets = {}; // socket.id -> { deviceId, roomId }
 
 let anonymousCounter = 1;
+// Tonos más monocromáticos/pastel para contrastar suavemente en fondo negro
 const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'];
 
 io.on('connection', (socket) => {
-    // Obtener el ID persistente del dispositivo desde el cliente
     let deviceId = socket.handshake.auth.deviceId;
     if (!deviceId) {
         deviceId = `temp_${socket.id}`;
     }
 
-    // Registrar el dispositivo si es nuevo (para que mantenga su nombre al recargar)
     if (!registeredDevices[deviceId]) {
         registeredDevices[deviceId] = {
             name: `Anonymous ${anonymousCounter}`,
@@ -39,7 +38,6 @@ io.on('connection', (socket) => {
     const myIdentity = registeredDevices[deviceId];
     activeSockets[socket.id] = { deviceId, roomId: null };
     
-    // Enviar información de identidad al cliente
     socket.emit('my-info', { deviceId, name: myIdentity.name, color: myIdentity.color });
 
     socket.on('join-room', (roomId) => {
@@ -50,10 +48,7 @@ io.on('connection', (socket) => {
             messages[roomId] = [];
         }
         
-        // Enviar historial
         socket.emit('chat-history', messages[roomId]);
-        
-        // Refrescar y deducir usuarios únicos en la sala
         emitRoomUsers(roomId);
     });
 
@@ -61,7 +56,7 @@ io.on('connection', (socket) => {
         const messageObj = {
             id: Date.now().toString(),
             text: data.content,
-            senderDeviceId: deviceId, // Agregado para identificar mensajes propios correctamente
+            senderDeviceId: deviceId,
             senderName: myIdentity.name,
             senderColor: myIdentity.color,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -72,23 +67,30 @@ io.on('connection', (socket) => {
     });
     
     socket.on('typing', (data) => {
-        // Se envía también el deviceId para no notificar de escritura a pestañas del mismo usuario
         socket.to(data.roomId).emit('user-typing', { deviceId, name: myIdentity.name, color: myIdentity.color });
+    });
+
+    // Validar contraseña y limpiar historial de la sala
+    socket.on('clear-chat', (data) => {
+        if (data.password === '27') {
+            messages[data.roomId] = [];
+            io.to(data.roomId).emit('chat-cleared');
+            console.log(`El chat de la sala ${data.roomId} fue borrado por un administrador.`);
+        }
     });
 
     socket.on('disconnect', () => {
         const socketInfo = activeSockets[socket.id];
         if (socketInfo) {
             const roomId = socketInfo.roomId;
-            delete activeSockets[socket.id]; // Eliminar el socket de las conexiones activas
+            delete activeSockets[socket.id];
             
             if (roomId) {
-                emitRoomUsers(roomId); // Refrescar lista de usuarios (filtrará duplicados)
+                emitRoomUsers(roomId);
             }
         }
     });
     
-    // Muestra en el top-bar solo una insignia por dispositivo, sin duplicar
     function emitRoomUsers(roomId) {
         const uniqueUsersMap = new Map();
         

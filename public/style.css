@@ -7,7 +7,7 @@
 body, html {
     width: 100vw;
     height: 100vh;
-    background-color: #0a0a0a; /* Fondo negro sólido */
+    background-color: #0a0a0a;
     color: #e9edef;
     overflow: hidden;
     display: flex;
@@ -15,11 +15,11 @@ body, html {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* Barra superior */
+/* Barra superior monocromática */
 #top-bar {
     width: 100%;
     padding: 10px 20px;
-    background-color: #121212;
+    background-color: #0f0f0f;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -52,12 +52,30 @@ body, html {
     border-radius: 50%;
 }
 
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
 #typing-indicator {
     font-size: 13px;
     font-style: italic;
     color: #888888;
     min-width: 150px;
     text-align: right;
+}
+
+#admin-icon {
+    cursor: pointer;
+    color: #888888;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+#admin-icon:hover {
+    color: #ffffff;
 }
 
 /* Área de Chat (Historial) */
@@ -67,7 +85,6 @@ body, html {
     padding: 20px 5%;
     display: flex;
     flex-direction: column;
-    /* Eliminada la imagen/trama, fondo negro puro #0a0a0a */
     background-color: #0a0a0a;
 }
 
@@ -77,7 +94,7 @@ body, html {
     gap: 12px;
 }
 
-/* Burbujas de mensaje con contraste oscuro limpio */
+/* Burbujas de mensaje totalmente monocromáticas oscuras */
 .message {
     max-width: 75%;
     padding: 8px 12px 10px 14px;
@@ -85,18 +102,19 @@ body, html {
     display: flex;
     flex-direction: column;
     position: relative;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    border: 1px solid #1f1f1f;
 }
 
 .message-own {
     align-self: flex-end;
-    background-color: #0d4a2d; /* Verde muy oscuro para contrastar con el fondo negro */
+    background-color: #222222; /* Gris carbón en vez de verde */
     border-top-right-radius: 2px;
+    border-color: #333333;
 }
 
 .message-other {
     align-self: flex-start;
-    background-color: #1c1c1c; /* Gris oscuro mate */
+    background-color: #141414; /* Casi negro */
     border-top-left-radius: 2px;
 }
 
@@ -111,21 +129,22 @@ body, html {
     line-height: 1.4;
     margin-bottom: 14px;
     word-wrap: break-word;
+    color: #ffffff;
 }
 
 .message-time {
     font-size: 11px;
-    color: rgba(255, 255, 255, 0.5);
+    color: #888888; /* Hora en gris claro */
     position: absolute;
     bottom: 4px;
     right: 10px;
 }
 
-/* Barra Inferior (Input) */
+/* Barra Inferior (Input) sin verde */
 #input-area {
     display: flex;
     padding: 12px 20px;
-    background-color: #121212;
+    background-color: #0f0f0f;
     border-top: 1px solid #222222;
     gap: 10px;
     align-items: center;
@@ -148,9 +167,9 @@ body, html {
 
 #send-button {
     padding: 12px 24px;
-    border: none;
+    border: 1px solid #333333;
     border-radius: 24px;
-    background-color: #008f6f;
+    background-color: #1a1a1a;
     color: #ffffff;
     font-weight: bold;
     font-size: 15px;
@@ -159,5 +178,91 @@ body, html {
 }
 
 #send-button:hover {
-    background-color: #007359;
+    background-color: #2a2a2a;
+}
+
+/* Sistema de Modales */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0,0,0,0.85);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background-color: #121212;
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid #333333;
+    width: 350px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.modal-content h3 {
+    color: #ffffff;
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+.modal-content input {
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #333333;
+    background-color: #1a1a1a;
+    color: #ffffff;
+    font-size: 16px;
+    text-align: center;
+    outline: none;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.modal-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid #333333;
+    background-color: #1a1a1a;
+    color: #ffffff;
+    cursor: pointer;
+    font-weight: bold;
+    flex: 1;
+    transition: background-color 0.2s;
+}
+
+.modal-btn:hover {
+    background-color: #2a2a2a;
+}
+
+.danger-btn {
+    background-color: #8c1d18;
+    color: white;
+    padding: 12px;
+    border: 1px solid #5e110f;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background-color 0.2s;
+}
+
+.danger-btn:hover {
+    background-color: #b3261e;
 }

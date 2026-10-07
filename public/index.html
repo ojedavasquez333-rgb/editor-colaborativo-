@@ -3,24 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Colaborativo (WhatsApp Style)</title>
+    <title>Chat Colaborativo</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="top-bar">
         <div id="users-list"></div>
-        <div id="typing-indicator"></div>
+        <div class="header-right">
+            <div id="typing-indicator"></div>
+            <!-- Ícono Hacker / Incógnito -->
+            <div id="admin-icon" title="Opciones de Administrador">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 14h20M9 14v4a3 3 0 0 1-6 0v-4M21 14v4a3 3 0 0 1-6 0v-4M5.5 14l3.5-9h6l3.5 9"></path>
+                </svg>
+            </div>
+        </div>
     </div>
     
-    <!-- Contenedor del historial secuencial de mensajes -->
+    <!-- Historial de mensajes -->
     <div id="chat-container">
         <div id="messages-list"></div>
     </div>
     
-    <!-- Barra inferior con el campo de texto y botón -->
+    <!-- Entrada de texto -->
     <div id="input-area">
         <input type="text" id="message-input" placeholder="Escribe un mensaje..." autocomplete="off">
         <button id="send-button">Enviar</button>
+    </div>
+
+    <!-- Modal Contraseña -->
+    <div id="password-modal" class="modal">
+        <div class="modal-content">
+            <h3>Acceso Restringido</h3>
+            <p id="password-error" style="color: #ff5252; font-size: 13px; display: none; margin: 0;">Acceso denegado</p>
+            <input type="password" id="admin-password" placeholder="Contraseña">
+            <div class="modal-actions">
+                <button class="modal-btn" id="cancel-password">Cancelar</button>
+                <button class="modal-btn" id="submit-password">Entrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Configuración -->
+    <div id="config-modal" class="modal">
+        <div class="modal-content">
+            <h3>Configuración del Servidor</h3>
+            <button id="clear-chat-btn" class="danger-btn">Borrar todo el chat</button>
+            <div class="modal-actions" style="margin-top: 10px;">
+                <button class="modal-btn" id="close-config">Cerrar</button>
+            </div>
+        </div>
     </div>
     
     <script src="/socket.io/socket.io.js"></script>

@@ -1,11 +1,9 @@
-// Obtener o generar un ID único de dispositivo en localStorage para persistencia de identidad
 let deviceId = localStorage.getItem('deviceId');
 if (!deviceId) {
     deviceId = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
     localStorage.setItem('deviceId', deviceId);
 }
 
-// Conectar enviando el deviceId de autenticación
 const socket = io({
     auth: {
         deviceId: deviceId
@@ -32,7 +30,6 @@ const typingIndicatorEl = document.getElementById('typing-indicator');
 
 let myInfo = null;
 
-// Recibir nuestra identidad confirmada
 socket.on('my-info', (info) => {
     myInfo = info;
     socket.emit('join-room', roomId);
@@ -52,7 +49,6 @@ messageInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendMessage();
 });
 
-// Emitir evento de 'está escribiendo'
 let typingTimeout;
 messageInput.addEventListener('input', () => {
     socket.emit('typing', { roomId });
@@ -67,7 +63,7 @@ const renderMessage = (msg) => {
     
     const nameSpan = document.createElement('div');
     nameSpan.className = 'message-name';
-    nameSpan.style.color = isMe ? '#00c288' : msg.senderColor; // Color distintivo claro para nosotros
+    nameSpan.style.color = isMe ? '#ffffff' : msg.senderColor; 
     nameSpan.innerText = isMe ? `Tú (${msg.senderName})` : msg.senderName;
     
     const textSpan = document.createElement('div');
@@ -95,6 +91,11 @@ socket.on('new-message', (msg) => {
     renderMessage(msg);
 });
 
+// Recibir orden de borrar historial en tiempo real
+socket.on('chat-cleared', () => {
+    messagesListEl.innerHTML = '';
+});
+
 // ------------- USUARIOS Y EVENTOS -------------
 socket.on('room-users', (users) => {
     usersListEl.innerHTML = ''; 
@@ -119,7 +120,6 @@ socket.on('room-users', (users) => {
 });
 
 socket.on('user-typing', (data) => {
-    // Si somos nosotros mismos los que escribimos (desde otra pestaña del mismo deviceId), ignorar
     if (myInfo && data.deviceId === myInfo.deviceId) return;
     
     typingIndicatorEl.innerText = `${data.name} está escribiendo...`;
@@ -129,4 +129,59 @@ socket.on('user-typing', (data) => {
     typingTimeout = setTimeout(() => {
         typingIndicatorEl.innerText = '';
     }, 1500);
+});
+
+// ------------- ADMIN MODALS -------------
+const adminIcon = document.getElementById('admin-icon');
+const passwordModal = document.getElementById('password-modal');
+const configModal = document.getElementById('config-modal');
+const passInput = document.getElementById('admin-password');
+const passError = document.getElementById('password-error');
+
+// Mostrar modal de contraseña
+adminIcon.addEventListener('click', () => {
+    passwordModal.classList.add('active');
+    passInput.focus();
+});
+
+// Cancelar contraseña
+document.getElementById('cancel-password').addEventListener('click', () => {
+    passwordModal.classList.remove('active');
+    passInput.value = '';
+    passError.style.display = 'none';
+});
+
+// Validar contraseña
+const submitPassword = () => {
+    if (passInput.value === '27') {
+        passwordModal.classList.remove('active');
+        passInput.value = '';
+        passError.style.display = 'none';
+        
+        // Abrir panel de configuración
+        configModal.classList.add('active');
+    } else {
+        // Acceso denegado
+        passError.style.display = 'block';
+    }
+};
+
+document.getElementById('submit-password').addEventListener('click', submitPassword);
+passInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') submitPassword();
+});
+
+// Cerrar config
+document.getElementById('close-config').addEventListener('click', () => {
+    configModal.classList.remove('active');
+});
+
+// Borrar chat
+document.getElementById('clear-chat-btn').addEventListener('click', () => {
+    const confirmClear = confirm("¿ESTÁS SEGURO? Esta acción vaciará permanentemente el chat para todos los conectados.");
+    if (confirmClear) {
+        // Enviar evento de clear validado al backend
+        socket.emit('clear-chat', { roomId, password: '27' });
+        configModal.classList.remove('active');
+    }
 });
