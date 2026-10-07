@@ -78,6 +78,48 @@ body, html {
     flex-shrink: 0; /* Evita que el área de admin se colapse */
 }
 
+/* Splash Screen */
+#splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    background-color: #000000;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.3s ease-out;
+}
+
+.splash-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.splash-mask {
+    width: 80px;
+    height: 80px;
+    animation: pulseMask 1.5s infinite alternate;
+}
+
+@keyframes pulseMask {
+    0% { transform: scale(0.95); opacity: 0.7; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
+    100% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 15px rgba(255,255,255,0.6)); }
+}
+
+.splash-text {
+    color: #ffffff;
+    font-family: monospace;
+    font-size: 14px;
+    letter-spacing: 3px;
+    opacity: 0.8;
+}
+
 #typing-indicator {
     font-size: 12px;
     font-style: italic;
@@ -88,14 +130,20 @@ body, html {
 #admin-icon {
     cursor: pointer;
     color: #888888;
-    transition: color 0.2s;
+    transition: color 0.2s, transform 0.2s;
     display: flex;
     align-items: center;
-    padding: 4px;
+    padding: 6px; /* Padding extra para área táctil */
+}
+
+#admin-icon svg {
+    width: 28px;
+    height: 28px;
 }
 
 #admin-icon:hover {
     color: #ffffff;
+    transform: scale(1.1);
 }
 
 /* Área de Chat (Historial) */

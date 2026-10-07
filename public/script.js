@@ -10,6 +10,22 @@ const socket = io({
     }
 });
 
+// Lógica del Splash Screen
+const splashScreen = document.getElementById('splash-screen');
+const hideSplash = () => {
+    if (!splashScreen) return;
+    splashScreen.style.opacity = '0';
+    setTimeout(() => {
+        splashScreen.style.display = 'none';
+    }, 300); // Esperar a que termine la transición CSS
+};
+
+// Ocultar si conecta rápido (con pequeño delay visual para el pulso), o máximo 600ms
+let splashTimeout = setTimeout(hideSplash, 600);
+socket.on('connect', () => {
+    setTimeout(hideSplash, 200);
+});
+
 const getRoomId = () => {
     const urlParams = new URLSearchParams(window.location.search);
     let roomId = urlParams.get('room');
