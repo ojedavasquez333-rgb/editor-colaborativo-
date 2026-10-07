@@ -102,14 +102,14 @@ body, html {
 }
 
 .splash-mask {
-    width: 80px;
-    height: 80px;
+    width: 160px; /* Tamaño grande especificado */
+    height: auto;
     animation: pulseMask 1.5s infinite alternate;
 }
 
 @keyframes pulseMask {
-    0% { transform: scale(0.95); opacity: 0.7; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
-    100% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 15px rgba(255,255,255,0.6)); }
+    0% { transform: scale(0.95); opacity: 0.8; filter: drop-shadow(0 0 5px rgba(255,255,255,0.1)); }
+    100% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 20px rgba(255,255,255,0.4)); }
 }
 
 .splash-text {
@@ -129,20 +129,19 @@ body, html {
 
 #admin-icon {
     cursor: pointer;
-    color: #888888;
-    transition: color 0.2s, transform 0.2s;
+    transition: transform 0.2s;
     display: flex;
     align-items: center;
     padding: 6px; /* Padding extra para área táctil */
 }
 
-#admin-icon svg {
-    width: 28px;
-    height: 28px;
+#admin-icon img {
+    width: 32px;
+    height: 32px;
+    filter: drop-shadow(0 0 2px rgba(255,255,255,0.2));
 }
 
 #admin-icon:hover {
-    color: #ffffff;
     transform: scale(1.1);
 }
 
