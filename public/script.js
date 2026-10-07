@@ -113,7 +113,9 @@ socket.on('chat-cleared', () => {
 });
 
 // ------------- USUARIOS Y EVENTOS -------------
+let currentUsers = [];
 socket.on('room-users', (users) => {
+    currentUsers = users;
     usersListEl.innerHTML = ''; 
     users.forEach(user => {
         const isMe = myInfo && myInfo.deviceId === user.deviceId;
@@ -133,6 +135,7 @@ socket.on('room-users', (users) => {
         badge.appendChild(text);
         usersListEl.appendChild(badge);
     });
+    populateKickList();
 });
 
 socket.on('user-typing', (data) => {
@@ -153,6 +156,36 @@ const passwordModal = document.getElementById('password-modal');
 const configModal = document.getElementById('config-modal');
 const passInput = document.getElementById('admin-password');
 const passError = document.getElementById('password-error');
+const toggleLockBtn = document.getElementById('toggle-lock-btn');
+
+let roomIsLocked = false;
+let hasAdminAccess = false;
+
+function updateInputState() {
+    if (roomIsLocked && !hasAdminAccess) {
+        messageInput.disabled = true;
+        sendButton.disabled = true;
+        messageInput.placeholder = "El chat ha sido bloqueado temporalmente por el administrador";
+    } else {
+        messageInput.disabled = false;
+        sendButton.disabled = false;
+        messageInput.placeholder = (roomIsLocked && hasAdminAccess) ? "Escribe un mensaje... (Modo Admin)" : "Escribe un mensaje...";
+    }
+}
+
+socket.on('room-lock-changed', (locked) => {
+    roomIsLocked = locked;
+    if (toggleLockBtn) toggleLockBtn.innerText = locked ? "Desbloquear sala" : "Bloquear acceso / Desbloquear sala";
+    updateInputState();
+});
+
+socket.on('kicked', () => {
+    document.getElementById('banned-modal').classList.add('active');
+});
+
+socket.on('room-locked-error', () => {
+    document.getElementById('locked-entry-modal').classList.add('active');
+});
 
 // Mostrar modal de contraseña
 adminBtn.addEventListener('click', () => {
@@ -170,12 +203,15 @@ document.getElementById('cancel-password').addEventListener('click', () => {
 // Validar contraseña
 const submitPassword = () => {
     if (passInput.value === '27') {
+        hasAdminAccess = true;
+        updateInputState();
         passwordModal.classList.remove('active');
         passInput.value = '';
         passError.style.display = 'none';
         
         // Abrir panel de configuración
         configModal.classList.add('active');
+        populateKickList();
     } else {
         // Acceso denegado
         passError.style.display = 'block';
@@ -196,8 +232,45 @@ document.getElementById('close-config').addEventListener('click', () => {
 document.getElementById('clear-chat-btn').addEventListener('click', () => {
     const confirmClear = confirm("¿ESTÁS SEGURO? Esta acción vaciará permanentemente el chat para todos los conectados.");
     if (confirmClear) {
-        // Enviar evento de clear validado al backend
         socket.emit('clear-chat', { roomId, password: '27' });
         configModal.classList.remove('active');
     }
 });
+
+// Bloquear / Desbloquear sala
+if (toggleLockBtn) {
+    toggleLockBtn.addEventListener('click', () => {
+        socket.emit('toggle-lock', { roomId, password: '27' });
+    });
+}
+
+// Poblar lista de expulsión
+function populateKickList() {
+    const kickListContainer = document.getElementById('kick-list');
+    if (!kickListContainer) return;
+    kickListContainer.innerHTML = '';
+    
+    if (!myInfo) return;
+    
+    const others = currentUsers.filter(u => u.deviceId !== myInfo.deviceId);
+    if (others.length === 0) {
+        kickListContainer.innerHTML = '<span style="color: #666; font-size: 13px;">No hay otros participantes conectados.</span>';
+        return;
+    }
+    
+    others.forEach(u => {
+        const item = document.createElement('div');
+        item.className = 'kick-item';
+        item.innerHTML = `
+            <span class="kick-item-name" style="color: ${u.color}">${u.name}</span>
+            <button class="kick-btn" onclick="kickUser('${u.deviceId}')">Expulsar</button>
+        `;
+        kickListContainer.appendChild(item);
+    });
+}
+
+window.kickUser = function(targetDeviceId) {
+    if(confirm('¿Seguro que quieres expulsar a este usuario?')) {
+        socket.emit('kick-user', { roomId, targetDeviceId, password: '27' });
+    }
+};

@@ -334,6 +334,45 @@ body, html {
     background-color: #b3261e;
 }
 
+/* Lista de Expulsión */
+.kick-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #1a1a1a;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #333;
+}
+.kick-item-name {
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+}
+.kick-btn {
+    background: #8c1d18;
+    color: #fff;
+    border: 1px solid #5e110f;
+    border-radius: 4px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+}
+.kick-btn:hover {
+    background: #b3261e;
+}
+
+#banned-modal, #locked-entry-modal {
+    z-index: 10000; /* Asegurar que bloqueen todo, incluido el splash screen si se atasca */
+}
+
+/* Modificar botones inhabilitados */
+input:disabled, button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* ---------------------------------
    MEDIA QUERIES PARA MÓVILES
    --------------------------------- */
