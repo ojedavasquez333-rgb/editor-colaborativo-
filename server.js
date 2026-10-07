@@ -13,83 +13,99 @@ const io = new Server(server, {
 
 app.use(express.static('public'));
 
-// Historial persistente en memoria: guarda un arreglo de mensajes por cada sala
-const messages = {}; // roomId -> Array de objetos mensaje
-let anonymousCounter = 1;
-const users = {}; // socket.id -> { name, color, roomId }
+const messages = {}; // roomId -> Array de mensajes
+const registeredDevices = {}; // deviceId -> { name, color }
+const activeSockets = {}; // socket.id -> { deviceId, roomId }
 
-// Lista de colores distintivos para los usuarios
+let anonymousCounter = 1;
 const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'];
 
 io.on('connection', (socket) => {
-    // Asignar nombre secuencial y color aleatorio o secuencial
-    const name = `Anonymous ${anonymousCounter}`;
-    const color = colors[anonymousCounter % colors.length];
-    anonymousCounter++;
+    // Obtener el ID persistente del dispositivo desde el cliente
+    let deviceId = socket.handshake.auth.deviceId;
+    if (!deviceId) {
+        deviceId = `temp_${socket.id}`;
+    }
+
+    // Registrar el dispositivo si es nuevo (para que mantenga su nombre al recargar)
+    if (!registeredDevices[deviceId]) {
+        registeredDevices[deviceId] = {
+            name: `Anonymous ${anonymousCounter}`,
+            color: colors[anonymousCounter % colors.length]
+        };
+        anonymousCounter++;
+    }
+
+    const myIdentity = registeredDevices[deviceId];
+    activeSockets[socket.id] = { deviceId, roomId: null };
     
-    users[socket.id] = { name, color, roomId: null };
-    
-    // Enviar al propio cliente su información
-    socket.emit('my-info', { id: socket.id, name, color });
+    // Enviar información de identidad al cliente
+    socket.emit('my-info', { deviceId, name: myIdentity.name, color: myIdentity.color });
 
     socket.on('join-room', (roomId) => {
         socket.join(roomId);
-        users[socket.id].roomId = roomId;
-        console.log(`${name} se unió a la sala: ${roomId}`);
+        activeSockets[socket.id].roomId = roomId;
         
-        // Inicializar el arreglo de historial si la sala es nueva
         if (messages[roomId] === undefined) {
             messages[roomId] = [];
         }
         
-        // Enviar todo el historial de la sala al usuario que acaba de entrar
+        // Enviar historial
         socket.emit('chat-history', messages[roomId]);
         
-        // Actualizar la lista de usuarios
+        // Refrescar y deducir usuarios únicos en la sala
         emitRoomUsers(roomId);
     });
 
-    // Escuchar cuando alguien envía un mensaje de chat
     socket.on('chat-message', (data) => {
-        const user = users[socket.id];
         const messageObj = {
             id: Date.now().toString(),
             text: data.content,
-            senderId: socket.id,
-            senderName: user.name,
-            senderColor: user.color,
+            senderDeviceId: deviceId, // Agregado para identificar mensajes propios correctamente
+            senderName: myIdentity.name,
+            senderColor: myIdentity.color,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
         
-        // Guardar en el historial
         messages[data.roomId].push(messageObj);
-        
-        // Hacer broadcast a TODOS en la sala, incluyendo al que lo envió (para que él también lo pinte)
         io.to(data.roomId).emit('new-message', messageObj);
     });
     
-    // Escuchar cuando alguien está escribiendo
     socket.on('typing', (data) => {
-        socket.to(data.roomId).emit('user-typing', { name: users[socket.id].name, color: users[socket.id].color });
+        // Se envía también el deviceId para no notificar de escritura a pestañas del mismo usuario
+        socket.to(data.roomId).emit('user-typing', { deviceId, name: myIdentity.name, color: myIdentity.color });
     });
 
     socket.on('disconnect', () => {
-        const user = users[socket.id];
-        if (user) {
-            console.log(`${user.name} se desconectó`);
-            const roomId = user.roomId;
-            delete users[socket.id];
+        const socketInfo = activeSockets[socket.id];
+        if (socketInfo) {
+            const roomId = socketInfo.roomId;
+            delete activeSockets[socket.id]; // Eliminar el socket de las conexiones activas
             
             if (roomId) {
-                emitRoomUsers(roomId);
+                emitRoomUsers(roomId); // Refrescar lista de usuarios (filtrará duplicados)
             }
         }
     });
     
+    // Muestra en el top-bar solo una insignia por dispositivo, sin duplicar
     function emitRoomUsers(roomId) {
-        const roomUsers = Object.entries(users)
-            .filter(([id, user]) => user.roomId === roomId)
-            .map(([id, user]) => ({ id, name: user.name, color: user.color }));
+        const uniqueUsersMap = new Map();
+        
+        Object.values(activeSockets).forEach(info => {
+            if (info.roomId === roomId) {
+                const identity = registeredDevices[info.deviceId];
+                if (identity) {
+                    uniqueUsersMap.set(info.deviceId, {
+                        deviceId: info.deviceId,
+                        name: identity.name,
+                        color: identity.color
+                    });
+                }
+            }
+        });
+
+        const roomUsers = Array.from(uniqueUsersMap.values());
         io.to(roomId).emit('room-users', roomUsers);
     }
 });

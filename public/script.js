@@ -1,4 +1,16 @@
-const socket = io();
+// Obtener o generar un ID único de dispositivo en localStorage para persistencia de identidad
+let deviceId = localStorage.getItem('deviceId');
+if (!deviceId) {
+    deviceId = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+    localStorage.setItem('deviceId', deviceId);
+}
+
+// Conectar enviando el deviceId de autenticación
+const socket = io({
+    auth: {
+        deviceId: deviceId
+    }
+});
 
 const getRoomId = () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -20,7 +32,7 @@ const typingIndicatorEl = document.getElementById('typing-indicator');
 
 let myInfo = null;
 
-// Cuando recibimos nuestra info, nos unimos a la sala
+// Recibir nuestra identidad confirmada
 socket.on('my-info', (info) => {
     myInfo = info;
     socket.emit('join-room', roomId);
@@ -31,7 +43,7 @@ const sendMessage = () => {
     const text = messageInput.value.trim();
     if (text) {
         socket.emit('chat-message', { roomId, content: text });
-        messageInput.value = ''; // Limpiar el campo
+        messageInput.value = '';
     }
 };
 
@@ -46,28 +58,22 @@ messageInput.addEventListener('input', () => {
     socket.emit('typing', { roomId });
 });
 
-
 // ------------- RENDERIZAR MENSAJES -------------
 const renderMessage = (msg) => {
-    const isMe = myInfo && myInfo.id === msg.senderId;
+    const isMe = myInfo && myInfo.deviceId === msg.senderDeviceId;
     
-    // Crear contenedor del mensaje (burbuja)
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isMe ? 'message-own' : 'message-other'}`;
     
-    // Nombre del remitente
     const nameSpan = document.createElement('div');
     nameSpan.className = 'message-name';
-    // Letra verde (WP) si somos nosotros, sino el color asignado
-    nameSpan.style.color = isMe ? '#00a884' : msg.senderColor;
+    nameSpan.style.color = isMe ? '#00c288' : msg.senderColor; // Color distintivo claro para nosotros
     nameSpan.innerText = isMe ? `Tú (${msg.senderName})` : msg.senderName;
     
-    // Texto del mensaje
     const textSpan = document.createElement('div');
     textSpan.className = 'message-text';
     textSpan.innerText = msg.text;
     
-    // Hora
     const timeSpan = document.createElement('div');
     timeSpan.className = 'message-time';
     timeSpan.innerText = msg.timestamp;
@@ -77,28 +83,23 @@ const renderMessage = (msg) => {
     messageDiv.appendChild(timeSpan);
     
     messagesListEl.appendChild(messageDiv);
-    
-    // Hacer auto-scroll hacia abajo inmediatamente
     chatContainerEl.scrollTop = chatContainerEl.scrollHeight;
 };
 
-// Recibir todo el historial cuando entramos a la sala
 socket.on('chat-history', (history) => {
     messagesListEl.innerHTML = '';
     history.forEach(renderMessage);
 });
 
-// Recibir un nuevo mensaje en vivo
 socket.on('new-message', (msg) => {
     renderMessage(msg);
 });
-
 
 // ------------- USUARIOS Y EVENTOS -------------
 socket.on('room-users', (users) => {
     usersListEl.innerHTML = ''; 
     users.forEach(user => {
-        const isMe = myInfo && myInfo.id === user.id;
+        const isMe = myInfo && myInfo.deviceId === user.deviceId;
         
         const badge = document.createElement('div');
         badge.className = 'user-badge';
@@ -118,6 +119,9 @@ socket.on('room-users', (users) => {
 });
 
 socket.on('user-typing', (data) => {
+    // Si somos nosotros mismos los que escribimos (desde otra pestaña del mismo deviceId), ignorar
+    if (myInfo && data.deviceId === myInfo.deviceId) return;
+    
     typingIndicatorEl.innerText = `${data.name} está escribiendo...`;
     typingIndicatorEl.style.color = data.color;
     

@@ -7,7 +7,7 @@
 body, html {
     width: 100vw;
     height: 100vh;
-    background-color: #0b141a; /* Fondo estilo WhatsApp Web oscuro */
+    background-color: #0a0a0a; /* Fondo negro sólido */
     color: #e9edef;
     overflow: hidden;
     display: flex;
@@ -19,12 +19,12 @@ body, html {
 #top-bar {
     width: 100%;
     padding: 10px 20px;
-    background-color: #202c33;
+    background-color: #121212;
     display: flex;
     justify-content: space-between;
     align-items: center;
     min-height: 60px;
-    box-shadow: 0 1px 3px rgba(11, 20, 26, 0.4);
+    border-bottom: 1px solid #222222;
     z-index: 10;
 }
 
@@ -42,7 +42,8 @@ body, html {
     display: flex;
     align-items: center;
     gap: 8px;
-    background-color: #2a3942;
+    background-color: #1a1a1a;
+    border: 1px solid #333333;
 }
 
 .user-dot {
@@ -54,7 +55,7 @@ body, html {
 #typing-indicator {
     font-size: 13px;
     font-style: italic;
-    color: #8696a0;
+    color: #888888;
     min-width: 150px;
     text-align: right;
 }
@@ -66,9 +67,8 @@ body, html {
     padding: 20px 5%;
     display: flex;
     flex-direction: column;
-    /* Fondo que imita la trama suave de WhatsApp */
-    background-image: url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png"); 
-    background-color: #0b141a;
+    /* Eliminada la imagen/trama, fondo negro puro #0a0a0a */
+    background-color: #0a0a0a;
 }
 
 #messages-list {
@@ -77,55 +77,56 @@ body, html {
     gap: 12px;
 }
 
-/* Burbujas de mensaje */
+/* Burbujas de mensaje con contraste oscuro limpio */
 .message {
     max-width: 75%;
-    padding: 6px 10px 8px 12px;
-    border-radius: 8px;
+    padding: 8px 12px 10px 14px;
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
     position: relative;
-    box-shadow: 0 1px 0.5px rgba(11,20,26,.13);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
 .message-own {
     align-self: flex-end;
-    background-color: #005c4b; /* Verde oscuro (mensaje propio WP) */
-    border-top-right-radius: 0;
+    background-color: #0d4a2d; /* Verde muy oscuro para contrastar con el fondo negro */
+    border-top-right-radius: 2px;
 }
 
 .message-other {
     align-self: flex-start;
-    background-color: #202c33; /* Gris oscuro (mensaje ajeno WP) */
-    border-top-left-radius: 0;
+    background-color: #1c1c1c; /* Gris oscuro mate */
+    border-top-left-radius: 2px;
 }
 
 .message-name {
     font-size: 13px;
     font-weight: bold;
-    margin-bottom: 3px;
+    margin-bottom: 4px;
 }
 
 .message-text {
-    font-size: 14.5px;
+    font-size: 15px;
     line-height: 1.4;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
     word-wrap: break-word;
 }
 
 .message-time {
     font-size: 11px;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.5);
     position: absolute;
     bottom: 4px;
-    right: 8px;
+    right: 10px;
 }
 
 /* Barra Inferior (Input) */
 #input-area {
     display: flex;
     padding: 12px 20px;
-    background-color: #202c33;
+    background-color: #121212;
+    border-top: 1px solid #222222;
     gap: 10px;
     align-items: center;
 }
@@ -134,23 +135,23 @@ body, html {
     flex-grow: 1;
     padding: 12px 20px;
     border-radius: 24px;
-    border: none;
+    border: 1px solid #333333;
     outline: none;
-    background-color: #2a3942;
-    color: #e9edef;
+    background-color: #1a1a1a;
+    color: #ffffff;
     font-size: 15px;
 }
 
 #message-input::placeholder {
-    color: #8696a0;
+    color: #666666;
 }
 
 #send-button {
     padding: 12px 24px;
     border: none;
     border-radius: 24px;
-    background-color: #00a884;
-    color: #111b21;
+    background-color: #008f6f;
+    color: #ffffff;
     font-weight: bold;
     font-size: 15px;
     cursor: pointer;
@@ -158,5 +159,5 @@ body, html {
 }
 
 #send-button:hover {
-    background-color: #008f6f;
+    background-color: #007359;
 }
