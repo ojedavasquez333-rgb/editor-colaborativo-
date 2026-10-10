@@ -1,6 +1,8 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
@@ -13,12 +15,36 @@ const io = new Server(server, {
 
 app.use(express.static('public'));
 
-const messages = {}; // roomId -> Array de mensajes
+const DATA_FILE = path.join(__dirname, 'messages.json');
+let messages = {}; // roomId -> Array de mensajes
+let roomLocks = {}; // roomId -> boolean
+
+// Cargar datos persistentes al iniciar
+try {
+    if (fs.existsSync(DATA_FILE)) {
+        const rawData = fs.readFileSync(DATA_FILE, 'utf8');
+        const data = JSON.parse(rawData);
+        if (data.messages) messages = data.messages;
+        if (data.roomLocks) roomLocks = data.roomLocks;
+        console.log('Historial y configuración restaurados desde messages.json');
+    }
+} catch (error) {
+    console.error('Error cargando messages.json:', error);
+}
+
+// Función para guardar datos
+function saveData() {
+    try {
+        fs.writeFileSync(DATA_FILE, JSON.stringify({ messages, roomLocks }), 'utf8');
+    } catch (error) {
+        console.error('Error guardando messages.json:', error);
+    }
+}
+
 const registeredDevices = {}; // deviceId -> { name, color }
 const activeSockets = {}; // socket.id -> { deviceId, roomId }
 
 let anonymousCounter = 1;
-// Tonos más monocromáticos/pastel para contrastar suavemente en fondo negro
 const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'];
 
 io.on('connection', (socket) => {
@@ -41,6 +67,12 @@ io.on('connection', (socket) => {
     socket.emit('my-info', { deviceId, name: myIdentity.name, color: myIdentity.color });
 
     socket.on('join-room', (roomId) => {
+        if (roomLocks[roomId]) {
+            socket.emit('room-locked-error');
+            socket.disconnect(true);
+            return;
+        }
+
         socket.join(roomId);
         activeSockets[socket.id].roomId = roomId;
         
@@ -49,6 +81,7 @@ io.on('connection', (socket) => {
         }
         
         socket.emit('chat-history', messages[roomId]);
+        socket.emit('room-lock-changed', roomLocks[roomId] || false);
         emitRoomUsers(roomId);
     });
 
@@ -62,7 +95,13 @@ io.on('connection', (socket) => {
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
         
+        if (messages[data.roomId] === undefined) {
+            messages[data.roomId] = [];
+        }
         messages[data.roomId].push(messageObj);
+        
+        saveData(); // Guardar en archivo
+        
         io.to(data.roomId).emit('new-message', messageObj);
     });
     
@@ -70,12 +109,42 @@ io.on('connection', (socket) => {
         socket.to(data.roomId).emit('user-typing', { deviceId, name: myIdentity.name, color: myIdentity.color });
     });
 
-    // Validar contraseña y limpiar historial de la sala
     socket.on('clear-chat', (data) => {
         if (data.password === '27') {
             messages[data.roomId] = [];
+            saveData(); // Guardar limpieza en archivo
             io.to(data.roomId).emit('chat-cleared');
             console.log(`El chat de la sala ${data.roomId} fue borrado por un administrador.`);
+        }
+    });
+
+    socket.on('toggle-lock', (data) => {
+        if (data.password === '27') {
+            roomLocks[data.roomId] = !roomLocks[data.roomId];
+            saveData(); // Guardar estado de bloqueo en archivo
+            io.to(data.roomId).emit('room-lock-changed', roomLocks[data.roomId]);
+            console.log(`La sala ${data.roomId} fue ${roomLocks[data.roomId] ? 'bloqueada' : 'desbloqueada'}.`);
+        }
+    });
+
+    socket.on('kick-user', (data) => {
+        if (data.password === '27') {
+            const targetDeviceId = data.targetDeviceId;
+            const socketsToKick = [];
+            for (const [sId, info] of Object.entries(activeSockets)) {
+                if (info.deviceId === targetDeviceId && info.roomId === data.roomId) {
+                    socketsToKick.push(sId);
+                }
+            }
+            
+            socketsToKick.forEach(sId => {
+                const targetSocket = io.sockets.sockets.get(sId);
+                if (targetSocket) {
+                    targetSocket.emit('kicked');
+                    targetSocket.disconnect(true);
+                }
+            });
+            console.log(`Usuario ${targetDeviceId} expulsado de la sala ${data.roomId}.`);
         }
     });
 

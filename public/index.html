@@ -83,6 +83,10 @@
         <div id="messages-list"></div>
     </div>
     
+    <div id="locked-banner" style="display: none; background-color: #8c1d18; color: #fff; text-align: center; padding: 8px; font-size: 13px; font-weight: bold; flex-shrink: 0; z-index: 5;">
+        El chat ha sido bloqueado por el administrador
+    </div>
+
     <!-- Entrada de texto -->
     <div id="input-area">
         <input type="text" id="message-input" placeholder="Escribe un mensaje..." autocomplete="off">
@@ -107,9 +111,37 @@
         <div class="modal-content">
             <h3>Configuración del Servidor</h3>
             <button id="clear-chat-btn" class="danger-btn">Borrar todo el chat</button>
+            
+            <button id="toggle-lock-btn" class="modal-btn" style="margin-top: 5px; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                <span>Bloquear / Desbloquear Chat</span>
+                <span id="lock-status-text" style="font-size: 11px; color: #aaa;">[ Estado: CHAT ACTIVO ]</span>
+            </button>
+            
+            <div style="margin-top: 15px; border-top: 1px solid #333; padding-top: 15px; text-align: left;">
+                <h4 style="color: #ccc; margin-bottom: 10px; font-size: 14px; text-align: center;">Expulsar participante</h4>
+                <div id="kick-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 120px; overflow-y: auto;">
+                    <!-- Lista dinámica de usuarios -->
+                </div>
+            </div>
+
             <div class="modal-actions" style="margin-top: 10px;">
                 <button class="modal-btn" id="close-config">Cerrar</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modales de Error / Expulsión -->
+    <div id="banned-modal" class="modal">
+        <div class="modal-content">
+            <h3>⛔ Has sido expulsado</h3>
+            <p style="color: #aaa; font-size: 14px;">El administrador te ha removido de esta sala.</p>
+        </div>
+    </div>
+
+    <div id="locked-entry-modal" class="modal">
+        <div class="modal-content">
+            <h3>🔒 Sala Bloqueada</h3>
+            <p style="color: #aaa; font-size: 14px;">El acceso ha sido cerrado temporalmente por el administrador.</p>
         </div>
     </div>
     

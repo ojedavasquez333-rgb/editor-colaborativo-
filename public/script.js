@@ -157,6 +157,8 @@ const configModal = document.getElementById('config-modal');
 const passInput = document.getElementById('admin-password');
 const passError = document.getElementById('password-error');
 const toggleLockBtn = document.getElementById('toggle-lock-btn');
+const lockStatusText = document.getElementById('lock-status-text');
+const lockedBanner = document.getElementById('locked-banner');
 
 let roomIsLocked = false;
 let hasAdminAccess = false;
@@ -165,17 +167,22 @@ function updateInputState() {
     if (roomIsLocked && !hasAdminAccess) {
         messageInput.disabled = true;
         sendButton.disabled = true;
-        messageInput.placeholder = "El chat ha sido bloqueado temporalmente por el administrador";
+        messageInput.placeholder = "El chat está bloqueado...";
+        lockedBanner.style.display = 'block';
     } else {
         messageInput.disabled = false;
         sendButton.disabled = false;
         messageInput.placeholder = (roomIsLocked && hasAdminAccess) ? "Escribe un mensaje... (Modo Admin)" : "Escribe un mensaje...";
+        lockedBanner.style.display = 'none';
     }
 }
 
 socket.on('room-lock-changed', (locked) => {
     roomIsLocked = locked;
-    if (toggleLockBtn) toggleLockBtn.innerText = locked ? "Desbloquear sala" : "Bloquear acceso / Desbloquear sala";
+    if (lockStatusText) {
+        lockStatusText.innerText = locked ? "[ Estado: CHAT BLOQUEADO ]" : "[ Estado: CHAT ACTIVO ]";
+        lockStatusText.style.color = locked ? "#ff5252" : "#4caf50";
+    }
     updateInputState();
 });
 
